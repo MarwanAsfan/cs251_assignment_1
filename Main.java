@@ -22,22 +22,9 @@ public class Main {
 }
 
 
-class Attribute {
-    String name;
-    List<String> values;
+record Attribute (String name, List<String> values){}
 
-    Attribute(String name, List<String> values) {
-        this.name = name;
-        this.values = values;
-    }
-
-}
-
-class Variation {
-    String name;
-    int price;
-    Map<String, String> attributeValues;
-
+record Variation(String name, Map<String, String> attributeValues, int price) {
     Variation(String name, Map<String, String> attributeValues, int price) {
         this.name = name;
         this.price = price;
@@ -47,24 +34,12 @@ class Variation {
     }
 }
 
-class Product {
-    String name;
-    int price;
-    List<Attribute> attributes;
-    List<Variation> variations;
-
-    Product(String name, int price, List<Attribute> attributes, List<Variation> variations) {
-        this.name = name;
-        this.price = price;
-        this.attributes = attributes;
-        this.variations = variations;
-    }
-}
+record Product(String name, int price, List<Attribute> attributes, List<Variation> variations) {}
 
 class Cart {
-    List<Variation> cart;
+    private final List<Variation> cart;
 
-    Cart(List<Variation> products) {
+    public Cart(List<Variation> products) {
         this.cart = products;
     }
 
@@ -78,8 +53,8 @@ class Cart {
             System.out.println("\n--- Cart ---");
             int total = 0;
             for (Variation v : cart) {
-                System.out.println("- " + v.name + " : " + v.price);
-                total += v.price;
+                System.out.println("- " + v.name() + " : " + v.price());
+                total += v.price();
             }
             System.out.println("Total: " + total);
             System.out.println("------------\n");
@@ -94,16 +69,16 @@ class Cart {
 }
 
 class Shop {
-    List<Product> products;
-    int index;
-    Map<String, String> selectedAttributes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
-    Cart cart = new Cart(new ArrayList<>());
+    private final List<Product> products;
+    private int index = -1;
+    private final Map<String, String> selectedAttributes = new TreeMap<>(String.CASE_INSENSITIVE_ORDER);
+    private final Cart cart = new Cart(new ArrayList<>());
 
-    Shop(List<Product> products) {
+    public Shop(List<Product> products) {
         this.products = products;
     }
 
-    void runShop() {
+    public void runShop() {
         if (products.isEmpty()) {
             System.out.print("The Shop is empty");
         } else {
@@ -113,9 +88,9 @@ class Shop {
             System.out.print("   ");
             System.out.println("Index: ");
             for (int i = 0; i < products.size(); i++) {
-                System.out.print(products.get(i).name);
+                System.out.print(products.get(i).name());
                 System.out.print("        ");
-                System.out.print(products.get(i).price);
+                System.out.print(products.get(i).price());
                 System.out.print("        ");
                 System.out.println(i);
             }
@@ -153,7 +128,7 @@ class Shop {
                 input.next();
             }
         }
-        System.out.println("Selected Product: " + products.get(index).name);
+        System.out.println("Selected Product: " + products.get(index).name());
         showSelectedProduct();
     }
 
@@ -161,9 +136,9 @@ class Shop {
         Variation selectedProduct = (null);
         Scanner input = new Scanner(System.in);
         while (true) {
-            if (selectedProduct != null && selectedAttributes.size() == products.get(this.index).attributes.size()) {
-                System.out.println("Name: " + selectedProduct.name);
-                System.out.println("Price: " + selectedProduct.price);
+            if (selectedProduct != null && selectedAttributes.size() == products.get(this.index).attributes().size()) {
+                System.out.println("Name: " + selectedProduct.name());
+                System.out.println("Price: " + selectedProduct.price());
             } else {
                 System.out.println("Name: " + "select attributes to proceed");
                 System.out.println("Price: " + "select attributes to proceed");
@@ -182,9 +157,9 @@ class Shop {
                     return;
                 }
                 if (action.equals("++")) {
-                    if (selectedProduct != null && selectedAttributes.size() == products.get(index).attributes.size()) {
+                    if (selectedProduct != null && selectedAttributes.size() == products.get(index).attributes().size()) {
                         cart.addProduct(selectedProduct);
-                        System.out.println("Success: Added " + selectedProduct.name);
+                        System.out.println("Success: Added " + selectedProduct.name());
                     } else {
                         System.out.println("Error: Please select all attributes first.");
                     }
@@ -202,9 +177,9 @@ class Shop {
                         }
                         selectedAttributes.put(action.toLowerCase(), attributeValue);
                         System.out.println("Attribute " + action + " with value " + attributeValue + " is selected");
-                        selectedProduct = products.get(this.index).variations.stream().filter(variation -> {
+                        selectedProduct = products.get(this.index).variations().stream().filter(variation -> {
                                     for (Map.Entry<String, String> entry : selectedAttributes.entrySet()) {
-                                        if (!entry.getValue().equalsIgnoreCase(variation.attributeValues.get(entry.getKey()))) {
+                                        if (!entry.getValue().equalsIgnoreCase(variation.attributeValues().get(entry.getKey()))) {
                                             return false;
                                         }
                                     }
@@ -220,11 +195,11 @@ class Shop {
     }
 
     private void printProduct() {
-        for (int i = 0; i < products.get(index).attributes.size(); i++) {
-            System.out.print(products.get(index).attributes.get(i).name);
-            for (int j = 0; j < products.get(index).attributes.get(i).values.size(); j++) {
-                String attributeValue = products.get(index).attributes.get(i).values.get(j);
-                String attributeName = products.get(index).attributes.get(i).name;
+        for (int i = 0; i < products.get(index).attributes().size(); i++) {
+            System.out.print(products.get(index).attributes().get(i).name());
+            for (int j = 0; j < products.get(index).attributes().get(i).values().size(); j++) {
+                String attributeValue = products.get(index).attributes().get(i).values().get(j);
+                String attributeName = products.get(index).attributes().get(i).name();
                 boolean isSelected = false;
                 if (isAvailable(attributeName, attributeValue)) {
                     for (String key : selectedAttributes.keySet()) {
@@ -246,8 +221,8 @@ class Shop {
     }
 
     private boolean isAvailable(String attributeName, String attributeValue) {
-        for (Variation variation : products.get(index).variations) {
-            for (Map.Entry<String, String> availableAttributes : variation.attributeValues.entrySet()) {
+        for (Variation variation : products.get(index).variations()) {
+            for (Map.Entry<String, String> availableAttributes : variation.attributeValues().entrySet()) {
                 if (availableAttributes.getValue().equals(attributeValue)) {
                     boolean found = true;
                     for (Map.Entry<String, String> entry : selectedAttributes.entrySet()) {
@@ -256,7 +231,7 @@ class Shop {
                         }
                         String selectedKey = entry.getKey();
                         String selectedValue = entry.getValue();
-                        if (!variation.attributeValues.get(selectedKey).equals(selectedValue)) {
+                        if (!variation.attributeValues().get(selectedKey).equals(selectedValue)) {
                             found = false;
                             break;
                         }
@@ -271,3 +246,4 @@ class Shop {
     }
 
 }
+
